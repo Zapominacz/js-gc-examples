@@ -1,15 +1,25 @@
 'use client'
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 class BigObject {
   data = new Uint8Array(1024 * 1024 * 10);
 }
+
+// out of the scope
+const bigObjects = {};
+const uniqueKey = "unique"; // can be index, context, etc.
+
 const Home = () => {
   const [countA, setCountA] = useState(0);
   const [countB, setCountB] = useState(0);
-  const bigObject = new BigObject();
-  const weakRef = new WeakRef(bigObject);
+  useEffect(() => {
+    return () => {
+      bigObjects[uniqueKey] = null;
+    };
+  }, [])
+  bigObjects[uniqueKey] = new BigObject();
+
   const handleClickA = useCallback(() => {
     setCountA(countA + 1);
   }, [countA]);
@@ -22,12 +32,11 @@ const Home = () => {
   const handleClickBoth = () => {
     handleClickA();
     handleClickB();
-    console.log(weakRef.deref()?.data.length); // can be undefined or 10 485 760
+    console.log(bigObjects[uniqueKey].data.length);
   };
 
   return (
     <div>
-      <span>{bigObject.data.length}</span>
       <button onClick={handleClickA}>Increment A</button>
       <button onClick={handleClickB}>Increment B</button>
       <button onClick={handleClickBoth}>Increment Both</button>
