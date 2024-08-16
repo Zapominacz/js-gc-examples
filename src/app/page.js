@@ -1,15 +1,25 @@
 'use client'
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 class BigObject {
   data = new Uint8Array(1024 * 1024 * 10);
 }
 
+ // this will event make the error for the first use
 const Home = () => {
   const [countA, setCountA] = useState(0);
   const [countB, setCountB] = useState(0);
-  const bigData = new BigObject(); // 10MB of data
+  const weakMap = new WeakMap();
+  let key = {}; // unique key
+  weakMap.set(key, new BigObject())
+  useEffect(() => {
+    return () => {
+      console.log("cleanup");
+      key = null;
+      weakMap.delete(key);
+    };
+  }, [])
 
   const handleClickA = useCallback(() => {
     setCountA(countA + 1);
@@ -23,7 +33,7 @@ const Home = () => {
   const handleClickBoth = () => {
     handleClickA();
     handleClickB();
-    console.log(bigData.data.length);
+    console.log(weakMap.get(key)?.data.length);
   };
 
   return (
